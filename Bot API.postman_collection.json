@@ -1,0 +1,833 @@
+{
+	"info": {
+		"_postman_id": "324e7369-bf87-4e2c-b2d6-b980b21598e9",
+		"name": "Bot API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37402665",
+		"_collection_link": "https://magnificenztech-solution.postman.co/workspace/MTS-Testing-collection~3dc253c4-c8fc-45e4-ab83-76d86d8bc882/collection/37402665-324e7369-bf87-4e2c-b2d6-b980b21598e9?action=share&source=collection_link&creator=37402665"
+	},
+	"item": [
+		{
+			"name": "Bot - Array",
+			"item": [
+				{
+					"name": "Wallet enquiry",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const CryptoJS = require('crypto-js');",
+									"",
+									"// Parse the request body JSON",
+									"let obj = JSON.parse(pm.request.body.raw);",
+									"",
+									"// Remove the HASH field",
+									"delete obj.HASH;",
+									"",
+									"// Extract and format the ACCOUNT_NAME, PAY_ID, and WALLET_VPA_NO fields",
+									"let accountNameString = `ACCOUNT_NAME=${obj.ACCOUNT_NAME.trim()}`;",
+									"let payIdString = `PAY_ID=[${obj.PAY_ID.map(id => `\"${id}\"`).join(',')}]`;",
+									"let walletVpaNoString = `WALLET_VPA_NO=${obj.WALLET_VPA_NO}`;",
+									"",
+									"// Combine ACCOUNT_NAME, PAY_ID, WALLET_VPA_NO, and salt",
+									"let formattedString = `${accountNameString}~${payIdString}~${walletVpaNoString}` + pm.environment.get(\"psp_salt\");",
+									"",
+									"// Log the formatted string",
+									"console.log(formattedString);",
+									"",
+									"// Generate the SHA256 hash",
+									"let hash = CryptoJS.SHA256(formattedString).toString(CryptoJS.enc.Hex);",
+									"",
+									"// Set the hash in the environment (converted to uppercase)",
+									"pm.environment.set(\"hash\", hash.toUpperCase());",
+									"",
+									"// Optionally set the request body without the HASH field",
+									"pm.environment.set(\"requestBody\", JSON.stringify(obj));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 202]);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ACCOUNT_NAME\": \"Sandesh\",\n    \"PAY_ID\": [\n        \"9323643809301818\",\n        \"1720784932028464\",\n        \"1718865291542778\"\n    ],\n    \"WALLET_VPA_NO\": \"anandbj1988@iob\",\n    \"HASH\": \"{{hash}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/payin/walletEnquiryArray",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payin",
+								"walletEnquiryArray"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "OrderId Enquiry",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const CryptoJS = require('crypto-js');",
+									"let obj = JSON.parse(pm.request.body.raw);",
+									"delete obj.HASH;",
+									"// Convert the PAY_ID array into a string with the desired format",
+									"let payIdString = `PAY_ID=[${obj.PAY_ID.map(id => `\"${id}\"`).join(',')}]`;",
+									"",
+									"// Handle the rest of the fields and combine with PAY_ID",
+									"let formattedString = Object.entries(obj)",
+									"    .filter(([key]) => key !== 'PAY_ID')",
+									"    .map(([key, value]) => `${key}=${value}`)",
+									"    .join('~');",
+									"",
+									"// Add the PAY_ID string to the formattedString",
+									"formattedString = `${formattedString}~${payIdString}` + pm.environment.get(\"psp_salt\");",
+									"",
+									"// Log the formatted string",
+									"console.log(formattedString);",
+									"",
+									"let hash = CryptoJS.SHA256(formattedString).toString(CryptoJS.enc.Hex);",
+									"pm.environment.set(\"hash\", hash.toUpperCase());",
+									"//obj.HASH = hash.toUpperCase();",
+									"pm.environment.set(\"requestBody\", JSON.stringify(obj));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"PAY_ID\":[\"1708503713356522\"],\n\"ORDER_ID\": \"BB1711536793762\",\n\"HASH\":\"fb4664f6e4ed445e7105ed1d67c719515d040962e542c169ca5111a16a6704be\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/payin/orderIdEnquiryArray",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payin",
+								"orderIdEnquiryArray"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RRN Enquiry",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const CryptoJS = require('crypto-js');",
+									"",
+									"// Parse the request body JSON",
+									"let obj = JSON.parse(pm.request.body.raw);",
+									"",
+									"// Remove the HASH field",
+									"delete obj.HASH;",
+									"",
+									"// Convert the PAY_ID array into a string with the desired format",
+									"let payIdString = `PAY_ID=[${obj.PAY_ID.map(id => `\"${id}\"`).join(',')}]`;",
+									"",
+									"// Extract the RRN field",
+									"let rrnString = `RRN=${obj.RRN}`;",
+									"",
+									"// Combine PAY_ID, RRN, and the salt",
+									"let formattedString = `${payIdString}~${rrnString}` + pm.environment.get(\"psp_salt\");",
+									"",
+									"// Log the formatted string",
+									"console.log(formattedString);",
+									"",
+									"// Generate the SHA256 hash",
+									"let hash = CryptoJS.SHA256(formattedString).toString(CryptoJS.enc.Hex);",
+									"",
+									"// Set the hash in the environment (converted to uppercase)",
+									"pm.environment.set(\"hash\", hash.toUpperCase());",
+									"",
+									"// Optionally set the request body without the HASH field",
+									"pm.environment.set(\"requestBody\", JSON.stringify(obj));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"PAY_ID\": [\n        \"1730094750422174\",\n        \"1730094750422174\",\n        \"1730094750422174\"\n    ],\n    \"RRN\": \"756789074900\",\n    \"HASH\": \"{{hash}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/payin/rrnEnquiryArray",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payin",
+								"rrnEnquiryArray"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Balance api",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const CryptoJS = require('crypto-js');",
+									"",
+									"// Parse the request body JSON",
+									"let obj = JSON.parse(pm.request.body.raw);",
+									"",
+									"// Remove the HASH field",
+									"delete obj.HASH;",
+									"",
+									"// Convert the PAY_ID array into a string with the desired format",
+									"let payIdString = `PAY_ID=[${obj.PAY_ID.map(id => `\"${id}\"`).join(',')}]`;",
+									"",
+									"// Combine PAY_ID, RRN, and the salt",
+									"let formattedString = `${payIdString}` + pm.environment.get(\"psp_salt\");",
+									"",
+									"// Log the formatted string",
+									"console.log(formattedString);",
+									"",
+									"// Generate the SHA256 hash",
+									"let hash = CryptoJS.SHA256(formattedString).toString(CryptoJS.enc.Hex);",
+									"",
+									"// Set the hash in the environment (converted to uppercase)",
+									"pm.environment.set(\"hash\", hash.toUpperCase());",
+									"",
+									"// Optionally set the request body without the HASH field",
+									"pm.environment.set(\"requestBody\", JSON.stringify(obj));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"PAY_ID\": [\n        \"1711090413557680\",\n        \"1720784932028464\",\n        \"1718865291542778\"\n    ],\n    \"HASH\": \"{{hash}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/payin/balance-enquiry-array",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payin",
+								"balance-enquiry-array"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "VPA validation",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const CryptoJS = require('crypto-js');",
+									"",
+									"// Parse the request body JSON",
+									"let obj = JSON.parse(pm.request.body.raw);",
+									"",
+									"// Remove the HASH field",
+									"delete obj.HASH;",
+									"",
+									"// Convert the PAY_ID array into a string with the desired format",
+									"let payIdString = `PAY_ID=[${obj.PAY_ID.map(id => `\"${id}\"`).join(',')}]`;",
+									"",
+									"// Extract the RRN field",
+									"let vpaNoString = `VPA_NO=${obj.VPA_NO}`;",
+									"",
+									"// Combine PAY_ID, RRN, and the salt",
+									"let formattedString = `${payIdString}~${vpaNoString}` + pm.environment.get(\"psp_salt\");",
+									"",
+									"// Log the formatted string",
+									"console.log(formattedString);",
+									"",
+									"// Generate the SHA256 hash",
+									"let hash = CryptoJS.SHA256(formattedString).toString(CryptoJS.enc.Hex);",
+									"",
+									"// Set the hash in the environment (converted to uppercase)",
+									"pm.environment.set(\"hash\", hash.toUpperCase());",
+									"",
+									"// Optionally set the request body without the HASH field",
+									"pm.environment.set(\"requestBody\", JSON.stringify(obj));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"PAY_ID\": [\n        \"9323643809301818\",\n        \"1730094750422174\",\n        \"1730095022312581\"\n    ],\n    \"VPA_NO\": \"9738023926@hdfc\",\n    \"HASH\": \"{{hash}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/verify-vpa-array",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"verify-vpa-array"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vpa list",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const CryptoJS = require('crypto-js');",
+									"",
+									"// Parse the request body JSON",
+									"let obj = JSON.parse(pm.request.body.raw);",
+									"",
+									"// Remove the HASH field",
+									"delete obj.HASH;",
+									"",
+									"// Convert the PAY_ID array into a string with the desired format",
+									"let payIdString = `PAY_ID=[${obj.PAY_ID.map(id => `\"${id}\"`).join(',')}]`;",
+									"",
+									"// Combine PAY_ID, RRN, and the salt",
+									"let formattedString = `${payIdString}` + pm.environment.get(\"psp_salt\");",
+									"",
+									"// Log the formatted string",
+									"console.log(formattedString);",
+									"",
+									"// Generate the SHA256 hash",
+									"let hash = CryptoJS.SHA256(formattedString).toString(CryptoJS.enc.Hex);",
+									"",
+									"// Set the hash in the environment (converted to uppercase)",
+									"pm.environment.set(\"hash\", hash.toUpperCase());",
+									"",
+									"// Optionally set the request body without the HASH field",
+									"pm.environment.set(\"requestBody\", JSON.stringify(obj));",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"PAY_ID\": [\n        \"9323643809301818\",\n        \"1730094750422174\",\n        \"1730095022312581\"\n    ],\n    \"HASH\": \"{{hash}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/upi-accounts-array",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"upi-accounts-array"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Bot Update transaction",
+			"item": [
+				{
+					"name": "No User action/Cancelled by User to STB with Valid UTR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// UTR not exist in the table error message We need to get"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const qs = require('querystring');\r",
+									"const cryptoJs = require('crypto-js');\r",
+									"const btoa = require('btoa'); // Use 'btoa' module\r",
+									"\r",
+									"// Function to sort and format the payload\r",
+									"const sortObject = (object) => {\r",
+									"    if (object && typeof object === 'object') {\r",
+									"        let sortedObject;\r",
+									"        let keysArr;\r",
+									"\r",
+									"        const sort = (object) => {\r",
+									"            object.sort(function (key1, key2) {\r",
+									"                if (key1 < key2) return -1;\r",
+									"                if (key1 > key2) return 1;\r",
+									"                return 0;\r",
+									"            });\r",
+									"        };\r",
+									"\r",
+									"        if (object instanceof Array) {\r",
+									"            sortedObject = [];\r",
+									"            sort(object);\r",
+									"            keysArr = Object.keys(object);\r",
+									"        } else {\r",
+									"            sortedObject = {};\r",
+									"            keysArr = Object.keys(object);\r",
+									"            sort(keysArr);\r",
+									"        }\r",
+									"\r",
+									"        for (const key of keysArr) {\r",
+									"            if (typeof object[key] === 'object') {\r",
+									"                sortedObject[key] = sortObject(object[key]);\r",
+									"            } else {\r",
+									"                sortedObject[key] = object[key];\r",
+									"            }\r",
+									"        }\r",
+									"\r",
+									"        return sortedObject;\r",
+									"    }\r",
+									"\r",
+									"    return object;\r",
+									"};\r",
+									"\r",
+									"// Function to create the formatted string and hash it\r",
+									"const hashMultidimensionalObject = (payload, secret) => {\r",
+									"    const sortedPayload = sortObject(payload);\r",
+									"    \r",
+									"    // Create the formatted string using key=value pairs separated by ~\r",
+									"    const formattedString = Object.entries(sortedPayload)\r",
+									"        .map(([key, value]) => `${key}=${value}`)\r",
+									"        .join('~') + secret;\r",
+									"\r",
+									"    // Print the formattedString to console\r",
+									"    console.log(\"Formatted String: \", formattedString);\r",
+									"\r",
+									"    // Hash the formattedString using SHA256\r",
+									"    return cryptoJs.SHA256(formattedString).toString(cryptoJs.enc.Hex);\r",
+									"};\r",
+									"\r",
+									"// Merchant secret key\r",
+									"const secret = 'f4fc244b-b023-4ec5-b50d-91ea406d11f1';\r",
+									"\r",
+									"const requestBody = JSON.parse(pm.request.body.toString());\r",
+									"delete requestBody.HASH; // Remove HASH from request payload\r",
+									"\r",
+									"// Generate the hash for the request payload\r",
+									"const reqPayloadHash = hashMultidimensionalObject(requestBody, secret);\r",
+									"\r",
+									"// Set the calculated hash in Postman's environment\r",
+									"pm.environment.set('hash', reqPayloadHash.toUpperCase());\r",
+									"\r",
+									"// Update the request body with the HASH\r",
+									"pm.request.body.raw = JSON.stringify({\r",
+									"    ...requestBody,\r",
+									"    HASH: reqPayloadHash.toUpperCase()\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"strictSSL": true,
+						"followOriginalHttpMethod": true,
+						"followAuthorizationHeader": true,
+						"removeRefererHeaderOnRedirect": true,
+						"insecureHTTPParser": false,
+						"tlsPreferServerCiphers": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"payId\": \"1717066035620213\",\r\n    \"orderId\": \"REITST10000000022\",\r\n    \"receiverWalleterVPANo\": \"7385848344@iob\",\r\n    \"utrRrnNo\": \"756438563857\",\r\n    \"HASH\":\"{{hash}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/payin/botupdatetransaction",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payin",
+								"botupdatetransaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Failed at Acquirer to STB with Valid UTR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// UTR not exist in the table error message We need to get"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const qs = require('querystring');\r",
+									"const cryptoJs = require('crypto-js');\r",
+									"const btoa = require('btoa'); // Use 'btoa' module\r",
+									"\r",
+									"// Function to sort and format the payload\r",
+									"const sortObject = (object) => {\r",
+									"    if (object && typeof object === 'object') {\r",
+									"        let sortedObject;\r",
+									"        let keysArr;\r",
+									"\r",
+									"        const sort = (object) => {\r",
+									"            object.sort(function (key1, key2) {\r",
+									"                if (key1 < key2) return -1;\r",
+									"                if (key1 > key2) return 1;\r",
+									"                return 0;\r",
+									"            });\r",
+									"        };\r",
+									"\r",
+									"        if (object instanceof Array) {\r",
+									"            sortedObject = [];\r",
+									"            sort(object);\r",
+									"            keysArr = Object.keys(object);\r",
+									"        } else {\r",
+									"            sortedObject = {};\r",
+									"            keysArr = Object.keys(object);\r",
+									"            sort(keysArr);\r",
+									"        }\r",
+									"\r",
+									"        for (const key of keysArr) {\r",
+									"            if (typeof object[key] === 'object') {\r",
+									"                sortedObject[key] = sortObject(object[key]);\r",
+									"            } else {\r",
+									"                sortedObject[key] = object[key];\r",
+									"            }\r",
+									"        }\r",
+									"\r",
+									"        return sortedObject;\r",
+									"    }\r",
+									"\r",
+									"    return object;\r",
+									"};\r",
+									"\r",
+									"// Function to create the formatted string and hash it\r",
+									"const hashMultidimensionalObject = (payload, secret) => {\r",
+									"    const sortedPayload = sortObject(payload);\r",
+									"    \r",
+									"    // Create the formatted string using key=value pairs separated by ~\r",
+									"    const formattedString = Object.entries(sortedPayload)\r",
+									"        .map(([key, value]) => `${key}=${value}`)\r",
+									"        .join('~') + secret;\r",
+									"\r",
+									"    // Print the formattedString to console\r",
+									"    console.log(\"Formatted String: \", formattedString);\r",
+									"\r",
+									"    // Hash the formattedString using SHA256\r",
+									"    return cryptoJs.SHA256(formattedString).toString(cryptoJs.enc.Hex);\r",
+									"};\r",
+									"\r",
+									"// Merchant secret key\r",
+									"const secret = 'f4fc244b-b023-4ec5-b50d-91ea406d11f1';\r",
+									"\r",
+									"const requestBody = JSON.parse(pm.request.body.toString());\r",
+									"delete requestBody.HASH; // Remove HASH from request payload\r",
+									"\r",
+									"// Generate the hash for the request payload\r",
+									"const reqPayloadHash = hashMultidimensionalObject(requestBody, secret);\r",
+									"\r",
+									"// Set the calculated hash in Postman's environment\r",
+									"pm.environment.set('hash', reqPayloadHash.toUpperCase());\r",
+									"\r",
+									"// Update the request body with the HASH\r",
+									"pm.request.body.raw = JSON.stringify({\r",
+									"    ...requestBody,\r",
+									"    HASH: reqPayloadHash.toUpperCase()\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"strictSSL": true,
+						"followOriginalHttpMethod": true,
+						"followAuthorizationHeader": true,
+						"removeRefererHeaderOnRedirect": true,
+						"insecureHTTPParser": false,
+						"tlsPreferServerCiphers": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"payId\": \"1730094750422174\",\r\n    \"amount\": \"1000\",\r\n    \"orderId\": \"BB1724935730462\",\r\n    \"utrRrnNo\": \"987890987890\",\r\n    \"HASH\": \"{{hash}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/payin/botupdatetransaction",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payin",
+								"botupdatetransaction"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Bot Insert STB Transaction",
+			"item": [
+				{
+					"name": "Bot Insert STB Transaction",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const qs = require('querystring');",
+									"const cryptoJs = require('crypto-js');",
+									"const btoa = require('btoa'); // Use 'btoa' module",
+									"",
+									"// Function to sort and format the payload",
+									"const sortObject = (object) => {",
+									"    if (object && typeof object === 'object') {",
+									"        let sortedObject;",
+									"        let keysArr;",
+									"",
+									"        const sort = (object) => {",
+									"            object.sort(function (key1, key2) {",
+									"                if (key1 < key2) return -1;",
+									"                if (key1 > key2) return 1;",
+									"                return 0;",
+									"            });",
+									"        };",
+									"",
+									"        if (object instanceof Array) {",
+									"            sortedObject = [];",
+									"            sort(object);",
+									"            keysArr = Object.keys(object);",
+									"        } else {",
+									"            sortedObject = {};",
+									"            keysArr = Object.keys(object);",
+									"            sort(keysArr);",
+									"        }",
+									"",
+									"        for (const key of keysArr) {",
+									"            if (typeof object[key] === 'object') {",
+									"                sortedObject[key] = sortObject(object[key]);",
+									"            } else {",
+									"                sortedObject[key] = object[key];",
+									"            }",
+									"        }",
+									"",
+									"        return sortedObject;",
+									"    }",
+									"",
+									"    return object;",
+									"};",
+									"",
+									"// Function to create the formatted string and hash it",
+									"const hashMultidimensionalObject = (payload, secret) => {",
+									"    const sortedPayload = sortObject(payload);",
+									"    ",
+									"    // Create the formatted string using key=value pairs separated by ~",
+									"    const formattedString = Object.entries(sortedPayload)",
+									"        .map(([key, value]) => `${key}=${value}`)",
+									"        .join('~') + secret;",
+									"",
+									"    // Print the formattedString to console",
+									"    console.log(\"Formatted String: \", formattedString);",
+									"",
+									"    // Hash the formattedString using SHA256",
+									"    return cryptoJs.SHA256(formattedString).toString(cryptoJs.enc.Hex);",
+									"};",
+									"",
+									"// Merchant secret key",
+									"const secret = 'f4fc244b-b023-4ec5-b50d-91ea406d11f1';",
+									"",
+									"const requestBody = JSON.parse(pm.request.body.toString());",
+									"delete requestBody.HASH; // Remove HASH from request payload",
+									"",
+									"// Generate the hash for the request payload",
+									"const reqPayloadHash = hashMultidimensionalObject(requestBody, secret);",
+									"",
+									"// Set the calculated hash in Postman's environment",
+									"pm.environment.set('hash', reqPayloadHash.toUpperCase());",
+									"",
+									"// Update the request body with the HASH",
+									"pm.request.body.raw = JSON.stringify({",
+									"    ...requestBody,",
+									"    HASH: reqPayloadHash.toUpperCase()",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"payId\": \"1717066035620213\",\r\n    \"orderId\": \"REITST10000000022\",\r\n    \"receiverWalleterVPANo\": \"7385848344@iob\",\r\n    \"utrRrnNo\": \"756438563857\",\r\n    \"HASH\":\"{{hash}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/payin/botinserttransaction",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payin",
+								"botinserttransaction"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
